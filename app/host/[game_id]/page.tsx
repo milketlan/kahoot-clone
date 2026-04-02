@@ -115,7 +115,7 @@ export default function HostPage({ params }: { params: { game_id: string } }) {
            {/* Third */}
            {topPlayers[2] && <div className="flex flex-col items-center animate-[slideUp_1.2s_ease-out]"><div className="text-2xl font-bold mb-3">{topPlayers[2].name}</div><div className="text-yellow-200 mb-2">{topPlayers[2].score} pts</div><div className="w-40 h-28 bg-amber-700 rounded-t-2xl flex justify-center items-start pt-6 text-4xl font-bold text-amber-950 shadow-[inset_0_-10px_20px_rgba(0,0,0,0.2)]">3</div></div>}
          </div>
-         <style dangerouslySetInnerHTML={{__html: \`@keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }\`}} />
+         <style dangerouslySetInnerHTML={{__html: `@keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }`}} />
        </div>
      );
   }
@@ -137,7 +137,7 @@ export default function HostPage({ params }: { params: { game_id: string } }) {
 
         <div className="w-full max-w-6xl grid grid-cols-2 gap-6 z-10">
           {currentQ?.options?.map((opt: string, i: number) => (
-             <div key={i} className={\`\${colors[i]} rounded-[2rem] p-12 flex items-center justify-center shadow-[0_12px_0_rgba(0,0,0,0.2)] transform transition hover:-translate-y-2\`}>
+             <div key={i} className={`${colors[i]} rounded-[2rem] p-12 flex items-center justify-center shadow-[0_12px_0_rgba(0,0,0,0.2)] transform transition hover:-translate-y-2`}>
                <span className="text-white text-5xl font-black drop-shadow-md">{opt}</span>
              </div>
           ))}
@@ -178,7 +178,7 @@ export default function HostPage({ params }: { params: { game_id: string } }) {
           ))}
           {players.length === 0 && (
             <div className="col-span-full flex flex-col justify-center items-center h-48 opacity-70 bg-white/5 rounded-3xl border border-dashed border-white/30">
-              <div className="w-16 h-16 border-8 border-white border-t-transparent rounded-full animate-spin mb-6 drop-shadow-lg"></div>
+              <div className="w-16 h-16 border-8 border-white border-t-transparent rounded-full animate-spin mb-6 drop-shadow-lg</div>
               <p className="text-3xl font-black uppercase tracking-widest animate-pulse drop-shadow-md">Waiting for players</p>
             </div>
           )}

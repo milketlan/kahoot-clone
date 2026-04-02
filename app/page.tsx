@@ -19,7 +19,7 @@ export default function Home() {
         .single();
       
       if (error) throw error;
-      router.push(\`/host/\${data.game_id}\`);
+      router.push(`/host/${data.game_id}`);
     } catch (e) {
       console.error(e);
       alert("Failed to create game. Check Supabase connection.");

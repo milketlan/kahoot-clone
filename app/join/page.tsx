@@ -57,8 +57,8 @@ function JoinForm() {
   useEffect(() => {
     if (!gameId) return;
 
-    const channel = supabase.channel(\`game_status_\${gameId}\`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'games', filter: \`game_id=eq.\${gameId}\` }, (payload) => {
+    const channel = supabase.channel(`game_status_${gameId}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'games', filter: `game_id=eq.${gameId}` }, (payload) => {
         setGameStatus(payload.new.status);
         if (payload.new.status === "playing") {
            // Reset answer if wait/playing toggles
@@ -104,7 +104,7 @@ function JoinForm() {
   if (gameStatus === "finished") {
      const isPodium = rank > 0 && rank <= 3;
      return (
-        <div className={\`min-h-screen \${isPodium ? 'bg-gradient-to-tr from-yellow-400 to-amber-600' : 'bg-slate-800'} flex flex-col items-center justify-center p-6 text-white text-center transition-colors duration-1000\`}>
+        <div className={`min-h-screen ${isPodium ? 'bg-gradient-to-tr from-yellow-400 to-amber-600' : 'bg-slate-800'} flex flex-col items-center justify-center p-6 text-white text-center transition-colors duration-1000`}>
             {isPodium ? (
                <>
                  <h1 className="text-9xl mb-8 animate-bounce">🏆</h1>
@@ -141,7 +141,7 @@ function JoinForm() {
               key={i}
               onClick={() => handleAnswer(i)}
               disabled={answeredRow !== null}
-              className={\`\${colors[i]} \${hoverColors[i]} rounded-2xl shadow-[0_8px_0_rgba(0,0,0,0.2)] transition-transform active:translate-y-2 active:shadow-none \${answeredRow === i ? 'opacity-100 border-[10px] border-white' : (answeredRow !== null ? 'opacity-30 scale-95 grayscale' : '')}\`}
+              className={`${colors[i]} ${hoverColors[i]} rounded-2xl shadow-[0_8px_0_rgba(0,0,0,0.2)] transition-transform active:translate-y-2 active:shadow-none ${answeredRow === i ? 'opacity-100 border-[10px] border-white' : (answeredRow !== null ? 'opacity-30 scale-95 grayscale' : '')}`}
             >
               {answeredRow === i && <span className="text-6xl animate-bounce absolute inset-0 flex items-center justify-center">✔️</span>}
             </button>
@@ -165,7 +165,7 @@ function JoinForm() {
           <p className="text-2xl font-bold bg-white/20 px-6 py-2 rounded-xl mt-4 border border-white/10 shadow-inner">{nickname}</p>
           <p className="mt-12 text-xl opacity-70 animate-pulse tracking-widest uppercase font-bold">Waiting for host...</p>
         </div>
-        <style dangerouslySetInnerHTML={{__html: \`@keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } }\`}} />
+        <style dangerouslySetInnerHTML={{__html: `@keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } }`}} />
       </div>
     );
   }
