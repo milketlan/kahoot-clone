@@ -10,7 +10,7 @@ export default function HostPage({ params }: { params: { game_id: string } }) {
   const [players, setPlayers] = useState<{ id: string; name: string; score: number }[]>([]);
   const [joinUrl, setJoinUrl] = useState("");
   const [status, setStatus] = useState("waiting");
-  const [questions, setQuestions] = useState<any[]>([]);
+  const [questions, setQuestions] = useState<{ title: string; options: string[] }[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function HostPage({ params }: { params: { game_id: string } }) {
 
     const fetchPlayers = async () => {
       const { data } = await supabase.from("players").select("*").eq("game_id", params.game_id);
-      if (data) setPlayers(data.map((p: any) => ({ id: p.player_id, name: p.name, score: p.score })));
+      if (data) setPlayers(data.map((p: { player_id: string; name: string; score: number }) => ({ id: p.player_id, name: p.name, score: p.score })));
     };
     fetchPlayers();
 
@@ -178,7 +178,7 @@ export default function HostPage({ params }: { params: { game_id: string } }) {
           ))}
           {players.length === 0 && (
             <div className="col-span-full flex flex-col justify-center items-center h-48 opacity-70 bg-white/5 rounded-3xl border border-dashed border-white/30">
-              <div className="w-16 h-16 border-8 border-white border-t-transparent rounded-full animate-spin mb-6 drop-shadow-lg</div>
+              <div className="w-16 h-16 border-8 border-white border-t-transparent rounded-full animate-spin mb-6 drop-shadow-lg"></div>
               <p className="text-3xl font-black uppercase tracking-widest animate-pulse drop-shadow-md">Waiting for players</p>
             </div>
           )}

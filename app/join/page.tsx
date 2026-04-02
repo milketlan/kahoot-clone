@@ -47,8 +47,8 @@ function JoinForm() {
       setGameId(game.game_id);
       setPlayerId(player.player_id);
       setJoined(true);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -161,7 +161,7 @@ function JoinForm() {
              <div className="absolute inset-0 rounded-full border-4 border-indigo-400 border-t-transparent animate-spin"></div>
              <span className="text-5xl">👀</span>
           </div>
-          <h2 className="text-4xl font-black mb-2">You're in!</h2>
+          <h2 className="text-4xl font-black mb-2">You&apos;re in!</h2>
           <p className="text-2xl font-bold bg-white/20 px-6 py-2 rounded-xl mt-4 border border-white/10 shadow-inner">{nickname}</p>
           <p className="mt-12 text-xl opacity-70 animate-pulse tracking-widest uppercase font-bold">Waiting for host...</p>
         </div>
