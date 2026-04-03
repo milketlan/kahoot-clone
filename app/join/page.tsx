@@ -28,6 +28,10 @@ function JoinForm() {
   const [answeredRow, setAnsweredRow] = useState<number | null>(null);
   const [currentQuestionTitle, setCurrentQuestionTitle] = useState("");
   const [currentOptions, setCurrentOptions] = useState<string[]>([]);
+  const [correctOption, setCorrectOption] = useState<number | null>(null);
+  const [questionStartTime, setQuestionStartTime] = useState(0);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [pointsGained, setPointsGained] = useState(0);
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,12 +65,33 @@ function JoinForm() {
 
     const fetchCurrentState = async (gameObj: { status: string; current_question_index: number }) => {
       setGameStatus(gameObj.status);
+      
       if (gameObj.status === "playing") {
         const { data: qList } = await supabase.from('questions').select('title, options').eq('game_id', gameId).order('created_at');
         if (qList && qList.length > gameObj.current_question_index) {
           setCurrentQuestionTitle(qList[gameObj.current_question_index].title);
           setCurrentOptions(qList[gameObj.current_question_index].options);
-          setAnsweredRow(null); // Reset player's answer when question changes
+          
+          // Reset player state for new question
+          setAnsweredRow(null); 
+          setCorrectOption(null);
+          setIsCorrect(null);
+          setPointsGained(0);
+          setQuestionStartTime(Date.now());
+        }
+      } else if (gameObj.status === "revealing_answer" || gameObj.status === "interstitial_leaderboard") {
+        // Fetch correct option to show result locally
+        const { data: qList } = await supabase.from('questions').select('correct_option_index').eq('game_id', gameId).order('created_at');
+        if (qList && qList.length > gameObj.current_question_index) {
+          const correctIdx = qList[gameObj.current_question_index].correct_option_index;
+          setCorrectOption(correctIdx);
+        }
+        
+        // Fetch our updated score from DB
+        const { data: pData } = await supabase.from('players').select('score, previous_score').eq('player_id', playerId).single();
+        if (pData) {
+           setScore(pData.score);
+           setPointsGained(pData.score - (pData.previous_score || 0));
         }
       }
     };
@@ -82,9 +107,14 @@ function JoinForm() {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [gameId]);
+  }, [gameId, playerId]);
 
-  // When game switches to finished, fetch rank
+  useEffect(() => {
+     if (correctOption !== null && answeredRow !== null) {
+         setIsCorrect(correctOption === answeredRow);
+     }
+  }, [correctOption, answeredRow]);
+
   useEffect(() => {
     if (gameStatus === "finished" && gameId && playerId) {
        const fetchRank = async () => {
@@ -104,15 +134,9 @@ function JoinForm() {
   const handleAnswer = async (index: number) => {
     if (answeredRow !== null) return;
     setAnsweredRow(index);
-    
-    // Add points based on speed (simulated vibe pointing)
-    const points = Math.floor(Math.random() * 500) + 500; 
-    
-    const { data } = await supabase.from('players').select('score').eq('player_id', playerId).single();
-    if(data) {
-        await supabase.from('players').update({ score: data.score + points }).eq('player_id', playerId);
-        setScore(data.score + points);
-    }
+    const ansTime = Date.now() - questionStartTime;
+    // Log answer to DB for Host to process later
+    await supabase.from('players').update({ current_answer: index, answer_time: ansTime }).eq('player_id', playerId);
   }
 
   // Phase 5 Finished UI
@@ -138,36 +162,51 @@ function JoinForm() {
         </div>
      );
   }
+  
+  // Phase 6 Revealing / Leaderboard UI
+  if (gameStatus === "revealing_answer" || gameStatus === "interstitial_leaderboard") {
+     return (
+        <div className={`min-h-screen ${isCorrect ? 'bg-green-500' : 'bg-red-500'} flex flex-col items-center justify-center p-8 text-white transition-colors duration-500 text-center`}>
+            <div className="text-9xl mb-8 animate-bounce drop-shadow-lg">{isCorrect ? '✅' : '❌'}</div>
+            <h1 className="text-5xl font-black mb-6 drop-shadow-md">{isCorrect ? 'Correct!' : 'Incorrect'}</h1>
+            {gameStatus === "interstitial_leaderboard" && (
+                <div className="mt-8 bg-white/20 p-8 rounded-3xl backdrop-blur-md border border-white/30 animate-[slideUp_0.5s_ease-out]">
+                   <p className="text-3xl font-bold mb-2">Total Score</p>
+                   <p className="text-6xl font-black">{score}</p>
+                   {pointsGained > 0 && <p className="text-xl font-bold mt-4 text-green-200">+{pointsGained} points!</p>}
+                   <p className="mt-8 text-lg font-bold opacity-80 animate-pulse">Look up at the big screen ⏫</p>
+                </div>
+            )}
+        </div>
+     );
+  }
 
   // Phase 4 Playing UI
   if (gameStatus === "playing") {
     const colors = ["bg-red-500", "bg-blue-500", "bg-yellow-400", "bg-green-500"];
-    const hoverColors = ["hover:bg-red-400", "hover:bg-blue-400", "hover:bg-yellow-300", "hover:bg-green-400"];
     const shapes = ["▲", "◆", "●", "■"];
-    
-    // Fallback if currentOptions didn't load somehow, still show colors
     const optionsArray = currentOptions.length > 0 ? currentOptions : ["A", "B", "C", "D"];
 
     return (
-      <div className="h-screen w-full bg-slate-100 flex flex-col p-2 gap-2 pb-[5vh]">
-        <div className="w-full flex justify-between p-4 mb-2 bg-white rounded-xl shadow-sm border-b border-slate-200">
+      <div className="h-[100dvh] w-full bg-slate-100 flex flex-col p-2 gap-2">
+        <div className="w-full flex justify-between p-4 bg-white rounded-xl shadow-sm border-b border-slate-200">
            <div className="font-bold text-slate-500 text-xl">{nickname}</div>
            <div className="font-black bg-indigo-100 text-indigo-700 px-3 py-1 text-xl rounded-md">{score}</div>
         </div>
-        <div className="w-full bg-white p-6 rounded-2xl shadow-md text-center flex-shrink-0 flex items-center justify-center border-b-[6px] border-indigo-400 mb-2">
-           <h2 className="text-2xl md:text-3xl font-black text-slate-800 break-words w-full px-2">{currentQuestionTitle || "即將開始..."}</h2>
+        <div className="w-full bg-white p-6 rounded-2xl shadow-md text-center flex-shrink-0 flex items-center justify-center border-b-[6px] border-indigo-400 mb-2 max-h-[15vh] overflow-hidden">
+           <h2 className="text-xl md:text-3xl font-black text-slate-800 break-words w-full px-2 line-clamp-3">{currentQuestionTitle || "即將開始..."}</h2>
         </div>
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 grid-rows-4 md:grid-rows-2 w-full gap-3 overflow-hidden">
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 grid-rows-4 md:grid-rows-2 w-full gap-3 overflow-hidden pb-[2vh]">
           {optionsArray.map((opt, i) => (
             <button
               key={i}
               onClick={() => handleAnswer(i)}
               disabled={answeredRow !== null}
-              className={`${colors[i]} ${hoverColors[i]} rounded-2xl shadow-[0_8px_0_rgba(0,0,0,0.2)] transition-transform active:translate-y-2 active:shadow-none ${answeredRow === i ? 'opacity-100 ring-8 ring-white scale-95' : (answeredRow !== null ? 'opacity-40 scale-90 grayscale' : '')} relative flex flex-col items-center justify-center p-4`}
+              className={`${colors[i]} hover:opacity-80 rounded-2xl shadow-[0_8px_0_rgba(0,0,0,0.2)] transition-transform active:translate-y-2 active:shadow-none ${answeredRow === i ? 'ring-8 ring-white scale-[0.98]' : (answeredRow !== null ? 'opacity-40 scale-95 grayscale' : '')} flex flex-col items-center justify-center p-4 relative overflow-hidden`}
             >
               <span className="text-white text-4xl mb-2 opacity-80">{shapes[i]}</span>
-              <span className="text-white text-3xl font-black drop-shadow-md break-words max-w-full leading-tight">{opt}</span>
-              {answeredRow === i && <span className="text-7xl animate-bounce absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 drop-shadow-2xl">⚡</span>}
+              <span className="text-white text-2xl md:text-3xl font-black drop-shadow-md break-words max-w-full leading-tight">{opt}</span>
+              {answeredRow === i && <span className="text-8xl animate-bounce absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 drop-shadow-2xl">⚡</span>}
             </button>
           ))}
         </div>
@@ -178,7 +217,7 @@ function JoinForm() {
   // Phase 3 Waiting UI
   if (joined) {
     return (
-      <div className="min-h-screen w-full bg-slate-900 flex flex-col items-center justify-center p-6 text-white relative overflow-hidden">
+      <div className="min-h-[100dvh] w-full bg-slate-900 flex flex-col items-center justify-center p-6 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 animate-[breathe_4s_infinite] opacity-80 z-0"></div>
         <div className="z-10 text-center flex flex-col items-center">
           <div className="w-32 h-32 bg-white/10 rounded-full flex items-center justify-center mb-8 border-4 border-white/20 shadow-[0_0_50px_rgba(255,255,255,0.1)] relative">
@@ -196,7 +235,7 @@ function JoinForm() {
 
   // Form UI
   return (
-    <div className="min-h-screen w-full bg-slate-100 flex flex-col justify-center items-center p-6 lg:p-8">
+    <div className="min-h-[100dvh] w-full bg-slate-100 flex flex-col justify-center items-center p-6 lg:p-8">
       <div className="w-full max-w-sm bg-white rounded-[2.5rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] p-8 border border-white relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-4 bg-gradient-to-r from-teal-400 to-blue-500"></div>
         <h1 className="text-5xl font-black text-center mb-10 mt-6 text-slate-800 tracking-tighter">Kahoot<span className="text-blue-600">!</span></h1>
