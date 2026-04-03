@@ -26,6 +26,7 @@ function JoinForm() {
   
   // Playing State
   const [answeredRow, setAnsweredRow] = useState<number | null>(null);
+  const [currentOptions, setCurrentOptions] = useState<string[]>([]);
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,12 +58,25 @@ function JoinForm() {
   useEffect(() => {
     if (!gameId) return;
 
+    const fetchCurrentState = async (gameObj: any) => {
+      setGameStatus(gameObj.status);
+      if (gameObj.status === "playing") {
+        const { data: qList } = await supabase.from('questions').select('options').eq('game_id', gameId).order('created_at');
+        if (qList && qList.length > gameObj.current_question_index) {
+          setCurrentOptions(qList[gameObj.current_question_index].options);
+          setAnsweredRow(null); // Reset player's answer when question changes
+        }
+      }
+    };
+
+    // Initial fetch state
+    supabase.from('games').select('*').eq('game_id', gameId).single().then(({data}) => {
+       if (data) fetchCurrentState(data);
+    });
+
     const channel = supabase.channel(`game_status_${gameId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'games', filter: `game_id=eq.${gameId}` }, (payload) => {
-        setGameStatus(payload.new.status);
-        if (payload.new.status === "playing") {
-           // Reset answer if wait/playing toggles
-        }
+         fetchCurrentState(payload.new);
       })
       .subscribe();
 
@@ -128,22 +142,28 @@ function JoinForm() {
   if (gameStatus === "playing") {
     const colors = ["bg-red-500", "bg-blue-500", "bg-yellow-400", "bg-green-500"];
     const hoverColors = ["hover:bg-red-400", "hover:bg-blue-400", "hover:bg-yellow-300", "hover:bg-green-400"];
+    const shapes = ["▲", "◆", "●", "■"];
     
+    // Fallback if currentOptions didn't load somehow, still show colors
+    const optionsArray = currentOptions.length > 0 ? currentOptions : ["A", "B", "C", "D"];
+
     return (
-      <div className="h-screen w-full bg-slate-100 flex flex-col p-2 gap-2 pb-[10vh]">
+      <div className="h-screen w-full bg-slate-100 flex flex-col p-2 gap-2 pb-[5vh]">
         <div className="w-full flex justify-between p-4 mb-2 bg-white rounded-xl shadow-sm">
-           <div className="font-bold text-slate-500">{nickname}</div>
-           <div className="font-black bg-indigo-100 text-indigo-700 px-3 py-1 rounded-md">{score}</div>
+           <div className="font-bold text-slate-500 text-xl">{nickname}</div>
+           <div className="font-black bg-indigo-100 text-indigo-700 px-3 py-1 text-xl rounded-md">{score}</div>
         </div>
-        <div className="grid grid-cols-2 grid-rows-2 h-full w-full gap-2">
-          {[0,1,2,3].map(i => (
+        <div className="grid grid-cols-1 md:grid-cols-2 grid-rows-4 md:grid-rows-2 h-full w-full gap-3">
+          {optionsArray.map((opt, i) => (
             <button
               key={i}
               onClick={() => handleAnswer(i)}
               disabled={answeredRow !== null}
-              className={`${colors[i]} ${hoverColors[i]} rounded-2xl shadow-[0_8px_0_rgba(0,0,0,0.2)] transition-transform active:translate-y-2 active:shadow-none ${answeredRow === i ? 'opacity-100 border-[10px] border-white' : (answeredRow !== null ? 'opacity-30 scale-95 grayscale' : '')}`}
+              className={`${colors[i]} ${hoverColors[i]} rounded-2xl shadow-[0_8px_0_rgba(0,0,0,0.2)] transition-transform active:translate-y-2 active:shadow-none ${answeredRow === i ? 'opacity-100 ring-8 ring-white scale-95' : (answeredRow !== null ? 'opacity-40 scale-90 grayscale' : '')} relative flex flex-col items-center justify-center p-4`}
             >
-              {answeredRow === i && <span className="text-6xl animate-bounce absolute inset-0 flex items-center justify-center">✔️</span>}
+              <span className="text-white text-4xl mb-2 opacity-80">{shapes[i]}</span>
+              <span className="text-white text-3xl font-black drop-shadow-md break-words max-w-full leading-tight">{opt}</span>
+              {answeredRow === i && <span className="text-7xl animate-bounce absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 drop-shadow-2xl">⚡</span>}
             </button>
           ))}
         </div>
