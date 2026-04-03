@@ -77,9 +77,36 @@ export default function HostPage({ params }: { params: { game_id: string } }) {
     
     if (qList.length === 0) {
       const dummyQs = [
-        { game_id: params.game_id, title: "What is 1 + 1?", options: ["1", "2", "3", "4"], correct_option_index: 1, time_limit: 10 },
-        { game_id: params.game_id, title: "Is Tailwind CSS fast?", options: ["Yes", "No", "Maybe", "What?"], correct_option_index: 0, time_limit: 10 },
-        { game_id: params.game_id, title: "What year is it?", options: ["2023", "2024", "2025", "2026"], correct_option_index: 3, time_limit: 10 },
+        { game_id: params.game_id, title: "什麼是 Agentic AI 的核心特徵？", options: ["只能被動回答", "具備自主規劃決策與執行", "只能處理影像", "需手動編寫邏輯"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "MCP (Model Context Protocol) 主要用途為何？", options: ["加快模型訓練", "標準化介面連接外部資源", "壓縮模型參數", "取代前端開發"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "在 Claude Code 中，哪一個指令專門用於核准 AI 執行的危險動作？", options: ["/allow", "/approve", "直接輸入 yes 或 Y", "/grant"], correct_option_index: 2, time_limit: 15 },
+        { game_id: params.game_id, title: "Agentic 系統中的 'Tools' (工具) 作用為何？", options: ["操作實體機器人", "讓 AI 執行程式碼或讀取檔案", "監控 AI 的效能", "優化記憶體"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "下列何者不是 MCP 架構中的標準元件？", options: ["MCP Client", "MCP Server", "MCP Root Router", "Host Application"], correct_option_index: 2, time_limit: 15 },
+        { game_id: params.game_id, title: "開發 MCP Server 時，讓模型能存取的靜態或動態資料功能稱為？", options: ["Resources", "Tools", "Prompts", "APIs"], correct_option_index: 0, time_limit: 15 },
+        { game_id: params.game_id, title: "在 Agentic 架構中，'Skills' (技能) 通常代表什麼？", options: ["內建的權重參數", "賦予 AI 執行特定領域任務的進階能力", "工程師寫程式速度", "AI繪圖技巧"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "Claude Code CLI 最大的特點是什麼？", options: ["整合編譯器", "整合於終端機，能理解整個專案並執行", "只支援 Python", "無法存取本地端"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "MCP 中的 'Prompts' 功能提供什麼主要好處？", options: ["提供標準化可重用的提示詞模板", "壓縮對話", "自動生成 UI", "直接連線網路"], correct_option_index: 0, time_limit: 15 },
+        { game_id: params.game_id, title: "關於 Agentic AI 運作循環 (Loop)，何者最準確？", options: ["觀察->思考->行動->觀察", "訓練->測試->佈署", "提問->回答->結束", "爬蟲->儲存->顯示"], correct_option_index: 0, time_limit: 15 },
+        { game_id: params.game_id, title: "何種情境最適合建立一個 MCP Server？", options: ["單純寫 Hello World", "企業私有系統標準化暴露給模型查詢", "更新顯卡驅動", "開發網頁前台"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "Claude Code 中，哪個指令用來顯示目前花費的 token 和成本？", options: ["/cost", "/budget", "/billing", "/tokens"], correct_option_index: 0, time_limit: 15 },
+        { game_id: params.game_id, title: "Tool-use 或 Function calling 讓 AI 可以做什麼？", options: ["獲得自我意識", "返回結構化資料觸發外部程式執行", "修復硬體", "避免斷線"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "Claude Code 執行高風險操作（例如刪除檔案）時預設會？", options: ["直接靜默執行", "需要使用者手動打字確認", "彈出系統視窗", "直接崩潰"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "MCP 主要支援哪兩種傳輸層機制？", options: ["FTP 與 SMTP", "Stdio 與 SSE", "TCP 與 UDP", "Bluetooth 與 WiFi"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "MCP Server 可以用哪些程式語言開發？", options: ["只能 Python", "只能 TypeScript", "任何支援 JSON-RPC 的語言皆可", "只能 C++"], correct_option_index: 2, time_limit: 15 },
+        { game_id: params.game_id, title: "在 Agentic AI 中，何謂 'Human-in-the-loop' (HITL)？", options: ["AI 控制人類", "系統暫停等待人類批准後再繼續", "人類提供電力", "讓語音聽起來更像人"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "在 Claude CLI 中，如何將特定檔案內容精準餵給 Claude？", options: ["使用滑鼠拖曳", "直接在對話提及檔名", "無法做到", "用手機拍照"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "為什麼要有 MCP？", options: ["大廠想壟斷", "解決無數模型與無數資源對接的 N x M 排列組合地獄", "縮小模型", "為了取代 Git"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "關於 MCP 的 Resources 描述何者正確？", options: ["允許模型讀取特定的靜態或動態唯讀資料", "允許模型執行指令", "用來輸入帳號密碼", "限制只輸出圖片"], correct_option_index: 0, time_limit: 15 },
+        { game_id: params.game_id, title: "Agent 的 Memory 通常被劃分為哪兩種？", options: ["快取與硬碟", "短期上下文與長期資料庫/外掛存放區", "視覺與聽覺", "主機板與雲端"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "MCP 架構允許模型「主動修改」Resources 上的資料嗎？", options: ["可以，這是特色", "不行，Resources 是唯讀的，修改應使用 Tools", "設定好 IP 就可以", "要升級付費版才能"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "若要讓 Agent 能夠編譯專案，需要賦予什麼？", options: ["Text-to-Speech", "執行 Bash 命令列的 Tool", "唱歌軟體", "網頁爬蟲能力"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "Claude Code 中是否能清除對話上下文以重新開始？", options: ["無法清除", "使用 /clear 指令", "按 ESC 鍵", "關閉網路連線"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "MCP 的 'Tools' 與 'Resources' 最主要差異？", options: ["沒有差異", "Resources 提供唯讀資料，Tools 用於產生副作用或動作", "只差在名字", "Resources 比較貴"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "Anthropic 推出 MCP 解決了什麼生態問題？", options: ["封閉的外掛生態系統", "只需開發一次 Server 即可供所有相容的 AI 使用", "減輕電池消耗", "取代 VSCode 開發"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "若給予 Agent 無限制的 CLI 操作權限可能會帶來什麼風險？", options: ["效能飆升", "無意間刪除重要檔案或執行危險腳本", "導致斷電", "程式碼自動重構太完美惹人怨"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "目前官方推薦開發 MCP Client 主要用於？", options: ["純後端腳本", "打造具備自定義能力的 Agent UI 或與現有編輯器整合", "寫遊戲", "挖礦"], correct_option_index: 1, time_limit: 15 },
+        { game_id: params.game_id, title: "哪一個 CLI 工具能實現直接利用最新大模型於終端機完成修改？", options: ["Git", "Docker", "Claude Code", "NPM"], correct_option_index: 2, time_limit: 15 },
+        { game_id: params.game_id, title: "Agentic AI 在解決複雜任務時，如果前一步失敗通常會？", options: ["立刻卡死並強制關閉", "分析錯誤訊息、調整策略或工具並重試", "等待開發者寫死 if-else", "將錯誤丟給下個任務"], correct_option_index: 1, time_limit: 15 }
       ];
       await supabase.from("questions").insert(dummyQs);
       const { data: newQData } = await supabase.from("questions").select("*").eq("game_id", params.game_id).order("created_at");

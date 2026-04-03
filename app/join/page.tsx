@@ -26,6 +26,7 @@ function JoinForm() {
   
   // Playing State
   const [answeredRow, setAnsweredRow] = useState<number | null>(null);
+  const [currentQuestionTitle, setCurrentQuestionTitle] = useState("");
   const [currentOptions, setCurrentOptions] = useState<string[]>([]);
 
   const handleJoin = async (e: React.FormEvent) => {
@@ -61,8 +62,9 @@ function JoinForm() {
     const fetchCurrentState = async (gameObj: { status: string; current_question_index: number }) => {
       setGameStatus(gameObj.status);
       if (gameObj.status === "playing") {
-        const { data: qList } = await supabase.from('questions').select('options').eq('game_id', gameId).order('created_at');
+        const { data: qList } = await supabase.from('questions').select('title, options').eq('game_id', gameId).order('created_at');
         if (qList && qList.length > gameObj.current_question_index) {
+          setCurrentQuestionTitle(qList[gameObj.current_question_index].title);
           setCurrentOptions(qList[gameObj.current_question_index].options);
           setAnsweredRow(null); // Reset player's answer when question changes
         }
@@ -148,11 +150,14 @@ function JoinForm() {
 
     return (
       <div className="h-screen w-full bg-slate-100 flex flex-col p-2 gap-2 pb-[5vh]">
-        <div className="w-full flex justify-between p-4 mb-2 bg-white rounded-xl shadow-sm">
+        <div className="w-full flex justify-between p-4 mb-2 bg-white rounded-xl shadow-sm border-b border-slate-200">
            <div className="font-bold text-slate-500 text-xl">{nickname}</div>
            <div className="font-black bg-indigo-100 text-indigo-700 px-3 py-1 text-xl rounded-md">{score}</div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 grid-rows-4 md:grid-rows-2 h-full w-full gap-3">
+        <div className="w-full bg-white p-6 rounded-2xl shadow-md text-center flex-shrink-0 flex items-center justify-center border-b-[6px] border-indigo-400 mb-2">
+           <h2 className="text-2xl md:text-3xl font-black text-slate-800 break-words w-full px-2">{currentQuestionTitle || "即將開始..."}</h2>
+        </div>
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 grid-rows-4 md:grid-rows-2 w-full gap-3 overflow-hidden">
           {optionsArray.map((opt, i) => (
             <button
               key={i}
