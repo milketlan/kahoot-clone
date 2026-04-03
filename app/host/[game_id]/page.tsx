@@ -93,17 +93,22 @@ export default function HostPage({ params }: { params: { game_id: string } }) {
   };
 
   const handleTimeUp = async () => {
+    // 1. ALWAYS Fetch absolute latest state of players from DB to avoid React state staleness!
+    const { data: freshPlayers } = await supabase.from("players").select("*").eq("game_id", params.game_id);
+    const playersToEval = freshPlayers || players;
+    
     const currentQ = questions[currentIndex];
     const timeLimitMs = (currentQ.time_limit || 15) * 1000;
     
     const updatedPlayers = [];
-    for (const player of players) {
+    for (const player of playersToEval as Player[]) {
        let addedScore = 0;
-       let newStreak = player.streak || 0;
+       let newStreak = Number(player.streak) || 0;
+       const cAns = player.current_answer;
        
-       if (player.current_answer === currentQ.correct_option_index && player.answer_time) {
+       if (cAns !== null && cAns !== undefined && cAns === currentQ.correct_option_index && player.answer_time) {
           // Correct! Calculate speed multiplier
-          const timeRatio = Math.max(0, 1 - (player.answer_time / timeLimitMs));
+          const timeRatio = Math.max(0, 1 - (Number(player.answer_time) / timeLimitMs));
           addedScore = 500 + Math.floor(timeRatio * 500); // 500 to 1000
           newStreak += 1;
           if (newStreak >= 3) addedScore += 200; // Streak bonus
@@ -111,9 +116,10 @@ export default function HostPage({ params }: { params: { game_id: string } }) {
           newStreak = 0;
        }
        
+       const baseScore = Number(player.score) || 0;
        const newData = {
-          previous_score: player.score,
-          score: player.score + addedScore,
+          previous_score: baseScore,
+          score: baseScore + addedScore,
           streak: newStreak
        };
        updatedPlayers.push({ ...player, ...newData });

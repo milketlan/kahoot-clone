@@ -19,6 +19,20 @@ export function CountdownBar({
   onDone?: () => void;
 }) {
   const [remainingMs, setRemainingMs] = useState(durationSeconds * 1000);
+  
+  // Keep the latest callback reference to avoid dependency tearing
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onDoneRef = import("react").then(r => r.useRef(onDone));
+  const [doneRef, setDoneRef] = useState<any>(null);
+  
+  useEffect(() => {
+     let ref: any;
+     setDoneRef((current: any) => {
+        if (!current) ref = { current: onDone };
+        else { current.current = onDone; ref = current; }
+        return ref;
+     });
+  }, [onDone]);
 
   useEffect(() => {
     setRemainingMs(durationSeconds * 1000);
@@ -32,11 +46,11 @@ export function CountdownBar({
       setRemainingMs(next);
       if (next <= 0) {
         clearInterval(timer);
-        onDone?.();
+        if (doneRef?.current) doneRef.current();
       }
     }, 50);
     return () => clearInterval(timer);
-  }, [durationSeconds, isRunning, onDone, resetKey]);
+  }, [durationSeconds, isRunning, resetKey, doneRef]);
 
   const percentage = Math.max(0, Math.min(100, (remainingMs / (durationSeconds * 1000)) * 100));
 
