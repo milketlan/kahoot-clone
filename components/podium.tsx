@@ -44,10 +44,10 @@ export function Podium({ players }: { players: { id?: string; player_id?: string
             className={`flex flex-col items-center flex-1 max-w-[250px] transition-all transform ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-[200px] opacity-0'}`}
             style={{ transitionDuration: '800ms', transitionDelay: `${animationDelay}s`, transitionTimingFunction: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}
           >
-             {rank === 1 && <div className="text-7xl mb-4 animate-bounce">👑</div>}
+             {rank === 1 && <div className="text-7xl mb-4 animate-[bounce_1s_ease-out_infinite]">👑</div>}
              <div className="text-3xl md:text-4xl font-black mb-2 text-white drop-shadow-md truncate w-full text-center">{player.name}</div>
              <div className="text-white/80 font-bold mb-4 text-xl">{player.score} pts</div>
-             <div className={`w-full bg-gradient-to-b ${podiumColors[index]} rounded-t-3xl flex justify-center pt-8 text-7xl font-black shadow-[inset_0_-10px_20px_rgba(0,0,0,0.2)] ${podiumHeights[i]}`}>
+             <div className={`w-full bg-gradient-to-b ${podiumColors[index]} rounded-t-3xl flex justify-center pt-8 text-7xl font-black shadow-[inset_0_-10px_20px_rgba(0,0,0,0.2)] ${podiumHeights[index]}`}>
                 {rank}
              </div>
           </div>
