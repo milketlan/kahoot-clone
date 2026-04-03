@@ -58,7 +58,7 @@ function JoinForm() {
   useEffect(() => {
     if (!gameId) return;
 
-    const fetchCurrentState = async (gameObj: any) => {
+    const fetchCurrentState = async (gameObj: { status: string; current_question_index: number }) => {
       setGameStatus(gameObj.status);
       if (gameObj.status === "playing") {
         const { data: qList } = await supabase.from('questions').select('options').eq('game_id', gameId).order('created_at');
@@ -69,14 +69,13 @@ function JoinForm() {
       }
     };
 
-    // Initial fetch state
     supabase.from('games').select('*').eq('game_id', gameId).single().then(({data}) => {
-       if (data) fetchCurrentState(data);
+       if (data) fetchCurrentState(data as unknown as { status: string; current_question_index: number });
     });
 
     const channel = supabase.channel(`game_status_${gameId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'games', filter: `game_id=eq.${gameId}` }, (payload) => {
-         fetchCurrentState(payload.new);
+         fetchCurrentState(payload.new as unknown as { status: string; current_question_index: number });
       })
       .subscribe();
 
