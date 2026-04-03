@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 function formatCountdown(ms: number) {
   const totalSeconds = Math.ceil(ms / 1000);
@@ -20,18 +20,10 @@ export function CountdownBar({
 }) {
   const [remainingMs, setRemainingMs] = useState(durationSeconds * 1000);
   
-  // Keep the latest callback reference to avoid dependency tearing
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onDoneRef = import("react").then(r => r.useRef(onDone));
-  const [doneRef, setDoneRef] = useState<any>(null);
+  const onDoneRef = useRef(onDone);
   
   useEffect(() => {
-     let ref: any;
-     setDoneRef((current: any) => {
-        if (!current) ref = { current: onDone };
-        else { current.current = onDone; ref = current; }
-        return ref;
-     });
+     onDoneRef.current = onDone;
   }, [onDone]);
 
   useEffect(() => {
@@ -46,11 +38,11 @@ export function CountdownBar({
       setRemainingMs(next);
       if (next <= 0) {
         clearInterval(timer);
-        if (doneRef?.current) doneRef.current();
+        onDoneRef.current?.();
       }
     }, 50);
     return () => clearInterval(timer);
-  }, [durationSeconds, isRunning, resetKey, doneRef]);
+  }, [durationSeconds, isRunning, resetKey]);
 
   const percentage = Math.max(0, Math.min(100, (remainingMs / (durationSeconds * 1000)) * 100));
 
