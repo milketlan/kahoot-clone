@@ -39,7 +39,9 @@ export default function HostPage({ params }: { params: { game_id: string } }) {
       const { data } = await supabase.from("games").select("*").eq("game_id", params.game_id).single();
       if (data) {
         setPinCode(data.pin_code);
-        setJoinUrl(`${window.location.origin}/join?pin=${data.pin_code}`);
+        // Force the QR code to point to the public production URL to bypass Vercel preview auth
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://kahoot-clone-pi.vercel.app";
+        setJoinUrl(`${baseUrl}/join?pin=${data.pin_code}`);
         setStatus(data.status);
         setCurrentIndex(data.current_question_index);
       }
