@@ -31,6 +31,7 @@ export default function HostPage({ params }: { params: { game_id: string } }) {
   const [status, setStatus] = useState("waiting");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [leaderboardSort, setLeaderboardSort] = useState<'previous'|'current'>('previous');
 
   // Audio hooks reserved for Phase 7 implementation
 
@@ -136,8 +137,14 @@ export default function HostPage({ params }: { params: { game_id: string } }) {
   };
 
   const showLeaderboard = async () => {
+    setLeaderboardSort('previous');
     setStatus("interstitial_leaderboard");
     await supabase.from("games").update({ status: "interstitial_leaderboard" }).eq("game_id", params.game_id);
+    
+    // Trigger the slow cinematic reshuffle animation after 2.5 seconds
+    setTimeout(() => {
+       setLeaderboardSort('current');
+    }, 2500);
   };
 
   const nextQuestion = async () => {
@@ -168,25 +175,46 @@ export default function HostPage({ params }: { params: { game_id: string } }) {
   }
 
   if (status === "interstitial_leaderboard") {
-    // Sort by current score
-    const sorted = [...players].sort((a,b) => b.score - a.score).slice(0, 5);
+    const previousTop5 = [...players].sort((a,b) => (Number(b.previous_score) || 0) - (Number(a.previous_score) || 0)).slice(0, 5);
+    const currentTop5 = [...players].sort((a,b) => Number(b.score) - Number(a.score)).slice(0, 5);
+    
+    // Combine unique players from both top 5 sets to animate entering/exiting
+    const uniquePlayers = Array.from(new Set([...previousTop5, ...currentTop5].map(p => p.player_id)))
+      .map(id => players.find(p => p.player_id === id)!);
+
+    const activeTop5 = leaderboardSort === 'previous' ? previousTop5 : currentTop5;
+
     return (
-      <div className="min-h-screen bg-indigo-900 flex flex-col items-center p-8 text-white">
-        <h1 className="text-6xl font-black mb-12">Top 5 Players</h1>
-        <div className="w-full max-w-4xl flex flex-col gap-4">
-           {sorted.map((p, i) => {
-              const pointDiff = p.score - (p.previous_score || 0);
+      <div className="min-h-screen bg-indigo-900 flex flex-col items-center p-8 text-white relative overflow-hidden">
+        <h1 className="text-6xl font-black mb-12 animate-pulse">Top 5 Players</h1>
+        <div className="relative w-full max-w-4xl h-[600px]">
+           {uniquePlayers.map((p) => {
+              const pointDiff = Number(p.score) - (Number(p.previous_score) || 0);
+              const rankIndex = activeTop5.findIndex(act => act.player_id === p.player_id);
+              const isVisible = rankIndex !== -1;
+              
               return (
-                <div key={p.player_id} className="bg-white text-slate-800 rounded-2xl p-6 flex items-center justify-between shadow-lg transform transition-all duration-1000 animate-[slideUp_0.5s_ease-out]">
+                <div 
+                   key={String(p.player_id)} 
+                   className="absolute left-0 right-0 bg-white text-slate-800 rounded-2xl p-6 flex items-center justify-between shadow-xl"
+                   style={{ 
+                     top: isVisible ? `${rankIndex * 110}px` : '600px',
+                     opacity: isVisible ? 1 : 0,
+                     transition: 'all 1.5s cubic-bezier(0.34, 1.56, 0.64, 1)', 
+                     zIndex: isVisible ? 10 - rankIndex : 0
+                   }}
+                >
                   <div className="flex items-center gap-6">
-                    <span className="text-4xl font-black text-indigo-400">#{i + 1}</span>
+                    <span className="text-4xl font-black text-indigo-400 w-16">#{isVisible ? rankIndex + 1 : '-'}</span>
                     <span className="text-3xl font-bold flex items-center gap-2">
-                      {p.name} {(p.streak || 0) >= 3 && <span className="animate-bounce" title="On a streak!">🔥</span>}
+                       {String(p.name)} {(Number(p.streak) || 0) >= 3 && <span className="animate-bounce text-2xl" title="On a streak!">🔥</span>}
                     </span>
                   </div>
                   <div className="flex items-center gap-6">
-                    {pointDiff > 0 && <span className="text-2xl font-bold text-green-500 animate-pulse">+{pointDiff}</span>}
-                    <span className="text-4xl font-black">{p.score}</span>
+                    {leaderboardSort === 'current' && pointDiff > 0 && <span className="text-2xl font-bold text-green-500 animate-[bounce_1s_ease-out_infinite]">+{pointDiff}</span>}
+                    <span className="text-5xl font-black tabular-nums transition-all duration-1000">
+                       {leaderboardSort === 'previous' ? (Number(p.previous_score) || 0) : Number(p.score)}
+                    </span>
                   </div>
                 </div>
               )
