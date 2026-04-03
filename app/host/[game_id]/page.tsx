@@ -32,10 +32,7 @@ export default function HostPage({ params }: { params: { game_id: string } }) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // New audio states
-  const playAudio = (type: 'tick' | 'correct' | 'wrong' | 'tada') => {
-     // Optional: Web Audio API synth sounds or audio tags.
-  };
+  // Audio hooks reserved for Phase 7 implementation
 
   useEffect(() => {
     const fetchGame = async () => {
@@ -215,7 +212,7 @@ export default function HostPage({ params }: { params: { game_id: string } }) {
             onDone={handleTimeUp} 
           />
         ) : (
-          <div className="text-center text-4xl font-black text-slate-600 mb-6">TIME'S UP!</div>
+          <div className="text-center text-4xl font-black text-slate-600 mb-6">TIME&apos;S UP!</div>
         )}
         
         <div className="w-full text-center bg-white p-12 rounded-[3rem] shadow-sm mt-8 border-b-[8px] border-slate-200 mb-12">
